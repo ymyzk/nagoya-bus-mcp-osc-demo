@@ -6,10 +6,14 @@ import asyncio
 from dataclasses import dataclass, field
 import json
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from agents import Agent, OpenAIChatCompletionsModel, Runner
+from agents import Agent, OpenAIChatCompletionsModel, Runner, TResponseInputItem
 from agents.mcp import MCPServerStdio
+from agents.stream_events import RawResponsesStreamEvent, RunItemStreamEvent
+
+if TYPE_CHECKING:
+    from agents.mcp.server import MCPServerStdioParams
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from openai.types.responses import ResponseTextDeltaEvent
@@ -28,7 +32,7 @@ AGENT_INSTRUCTIONS = (
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 DEFAULT_MODEL = "openai/gpt-5-mini"
 
-MCP_SERVER_PARAMS = {
+MCP_SERVER_PARAMS: MCPServerStdioParams = {
     "command": "uv",
     "args": ["run", "nagoya-bus-mcp"],
 }
@@ -84,8 +88,8 @@ def _pretty_json(raw: str) -> str:
         return raw
 
 
-def _build_agent_input(messages: list[dict[str, Any]]) -> list[dict[str, str]]:
-    history: list[dict[str, str]] = []
+def _build_agent_input(messages: list[dict[str, Any]]) -> list[TResponseInputItem]:
+    history: list[TResponseInputItem] = []
     for msg in messages:
         if msg["role"] == "user":
             history.append({"role": "user", "content": msg["content"]})
@@ -98,7 +102,7 @@ def _build_agent_input(messages: list[dict[str, Any]]) -> list[dict[str, str]]:
 
 
 async def run_turn(
-    history: list[dict[str, str]],
+    history: list[TResponseInputItem],
     text_placeholder: st.delta_generator.DeltaGenerator,
     tool_container: st.delta_generator.DeltaGenerator,
 ) -> AssistantTurn:
@@ -129,11 +133,11 @@ async def run_turn(
         result = Runner.run_streamed(agent, input=history)
 
         async for event in result.stream_events():
-            if event.type == "raw_response_event":
+            if isinstance(event, RawResponsesStreamEvent):
                 if isinstance(event.data, ResponseTextDeltaEvent):
                     text_buffer += event.data.delta
                     text_placeholder.markdown(text_buffer)
-            elif event.type == "run_item_stream_event":
+            elif isinstance(event, RunItemStreamEvent):
                 item = event.item
                 if item.type == "tool_call_item":
                     raw = item.raw_item
