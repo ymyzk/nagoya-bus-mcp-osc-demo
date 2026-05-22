@@ -6,7 +6,7 @@ import asyncio
 from dataclasses import dataclass, field
 import json
 import os
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal, TypedDict
 
 from agents import Agent, OpenAIChatCompletionsModel, Runner, TResponseInputItem
 from agents.mcp import MCPServerStdio
@@ -62,9 +62,25 @@ class ToolSegment:
     done: bool = False
 
 
+Segment = str | ToolSegment
+
+
 @dataclass
 class AssistantTurn:
-    segments: list[Any] = field(default_factory=list)
+    segments: list[Segment] = field(default_factory=list)
+
+
+class UserMessage(TypedDict):
+    role: Literal["user"]
+    content: str
+
+
+class AssistantMessage(TypedDict):
+    role: Literal["assistant"]
+    content: AssistantTurn
+
+
+Message = UserMessage | AssistantMessage
 
 
 def _render_assistant_turn(turn: AssistantTurn) -> None:
@@ -91,13 +107,13 @@ def _pretty_json(raw: str) -> str:
         return raw
 
 
-def _build_agent_input(messages: list[dict[str, Any]]) -> list[TResponseInputItem]:
+def _build_agent_input(messages: list[Message]) -> list[TResponseInputItem]:
     history: list[TResponseInputItem] = []
     for msg in messages:
         if msg["role"] == "user":
             history.append({"role": "user", "content": msg["content"]})
         else:
-            turn: AssistantTurn = msg["content"]
+            turn = msg["content"]
             text = "".join(s for s in turn.segments if isinstance(s, str))
             if text:
                 history.append({"role": "assistant", "content": text})
@@ -231,7 +247,9 @@ def main() -> None:
     if "pending_prompt" not in st.session_state:
         st.session_state.pending_prompt = None
 
-    for msg in st.session_state.messages:
+    messages: list[Message] = st.session_state.messages
+
+    for msg in messages:
         with st.chat_message(msg["role"]):
             if msg["role"] == "user":
                 st.markdown(msg["content"])
@@ -246,22 +264,22 @@ def main() -> None:
     if not prompt:
         return
 
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
 
     with st.chat_message("assistant"):
         tool_container = st.container()
         text_placeholder = st.empty()
-        history = _build_agent_input(st.session_state.messages)
+        history = _build_agent_input(messages)
         try:
             turn = asyncio.run(run_turn(history, text_placeholder, tool_container))
         except Exception as exc:  # noqa: BLE001
             st.error(f"Agent run failed: {exc}")
-            st.session_state.messages.pop()
+            messages.pop()
             return
 
-    st.session_state.messages.append({"role": "assistant", "content": turn})
+    messages.append({"role": "assistant", "content": turn})
 
 
 if __name__ == "__main__":
