@@ -139,9 +139,7 @@ async def run_turn(
                     raw = item.raw_item
                     name = getattr(raw, "name", "tool")
                     arguments = getattr(raw, "arguments", "") or ""
-                    call_id = getattr(raw, "call_id", None) or getattr(
-                        raw, "id", name
-                    )
+                    call_id = getattr(raw, "call_id", None) or getattr(raw, "id", name)
                     seg = ToolSegment(name=name, arguments=arguments)
                     status = tool_container.status(
                         f"🔧 Calling `{name}`…", expanded=False
@@ -169,9 +167,7 @@ async def run_turn(
                         with status:
                             st.caption("Result")
                             st.code(_pretty_json(output_str), language="json")
-                        status.update(
-                            label=f"🔧 `{seg.name}`", state="complete"
-                        )
+                        status.update(label=f"🔧 `{seg.name}`", state="complete")
 
     if text_buffer:
         turn.segments.append(text_buffer)
@@ -246,9 +242,7 @@ def main() -> None:
         text_placeholder = st.empty()
         history = _build_agent_input(st.session_state.messages)
         try:
-            turn = asyncio.run(
-                run_turn(history, text_placeholder, tool_container)
-            )
+            turn = asyncio.run(run_turn(history, text_placeholder, tool_container))
         except Exception as exc:  # noqa: BLE001
             st.error(f"Agent run failed: {exc}")
             st.session_state.messages.pop()
