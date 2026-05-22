@@ -68,10 +68,10 @@ def _render_assistant_turn(turn: AssistantTurn) -> None:
         elif isinstance(seg, ToolSegment):
             label = f"🔧 `{seg.name}`"
             with st.expander(label, expanded=False):
-                st.caption("Arguments")
+                st.caption("引数")
                 st.code(_pretty_json(seg.arguments), language="json")
                 if seg.output:
-                    st.caption("Result")
+                    st.caption("結果")
                     st.code(_pretty_json(seg.output), language="json")
 
 
@@ -145,7 +145,7 @@ async def run_turn(
                         f"🔧 Calling `{name}`…", expanded=False
                     )
                     with status:
-                        st.caption("Arguments")
+                        st.caption("引数")
                         st.code(_pretty_json(arguments), language="json")
                     active_tools[call_id] = (seg, status)
                     turn.segments.append(seg)
@@ -165,7 +165,7 @@ async def run_turn(
                         seg.output = output_str
                         seg.done = True
                         with status:
-                            st.caption("Result")
+                            st.caption("結果")
                             st.code(_pretty_json(output_str), language="json")
                         status.update(label=f"🔧 `{seg.name}`", state="complete")
 
@@ -208,11 +208,12 @@ def _render_sidebar() -> None:
 
 
 def main() -> None:
-    st.set_page_config(page_title="Nagoya Bus MCP Demo", page_icon="🚌")
-    st.title("🚌 Nagoya Bus MCP Demo")
+    st.set_page_config(page_title="名古屋市バスMCPサーバーデモ", page_icon="🚌")
+    st.title("🚌 名古屋市バスMCPサーバーデモ")
     st.caption(
-        "OpenAI Agents SDK + `nagoya-bus-mcp` over stdio. "
-        "Ask about Nagoya City bus stops, timetables, and live approach info."
+        "名古屋市バスのバス停・時刻表・リアルタイム接近情報について質問できます。"
+        "OpenAI Agents SDK + OpenRouter + `nagoya-bus-mcp` + Streamlit "
+        "で実装しています。"
     )
 
     _check_api_key()
