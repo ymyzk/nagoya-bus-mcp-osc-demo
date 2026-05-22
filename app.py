@@ -26,7 +26,10 @@ AGENT_INSTRUCTIONS = (
     "timetables, route guidance, and real-time approach information. "
     "Prefer using MCP tools for authoritative answers. Ask clarifying "
     "questions when a station name or route is ambiguous. The output "
-    "should be in Markdown format."
+    "should be in Markdown format. "
+    "The closest bus stop from the current location is '吹上' (Fukiage). "
+    "Do not include internal route codes (e.g. 3711002) in the output, "
+    "as they are not meaningful to users."
 )
 
 OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
@@ -84,7 +87,7 @@ def _pretty_json(raw: str) -> str:
         return ""
     try:
         return json.dumps(json.loads(raw), ensure_ascii=False, indent=2)
-    except (json.JSONDecodeError, TypeError):
+    except json.JSONDecodeError, TypeError:
         return raw
 
 
