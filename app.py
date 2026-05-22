@@ -186,12 +186,13 @@ def _check_api_key() -> None:
 
 def _render_sidebar() -> None:
     with st.sidebar:
-        st.subheader("LLM")
-        st.markdown(
-            f"OpenRouter · `{os.environ.get('OPENROUTER_MODEL', DEFAULT_MODEL)}`"
-        )
         st.subheader("MCP server")
         st.code("uv run nagoya-bus-mcp", language="shell")
+        st.link_button(
+            "GitHub: ymyzk/nagoya-bus-mcp",
+            "https://github.com/ymyzk/nagoya-bus-mcp",
+            use_container_width=True,
+        )
         st.subheader("Tools")
         for name, desc in TOOL_CATALOG:
             st.markdown(f"- `{name}` — {desc}")
@@ -200,6 +201,10 @@ def _render_sidebar() -> None:
             if st.button(example, use_container_width=True):
                 st.session_state.pending_prompt = example
                 st.rerun()
+        st.subheader("LLM")
+        st.markdown(
+            f"OpenRouter · `{os.environ.get('OPENROUTER_MODEL', DEFAULT_MODEL)}`"
+        )
 
 
 def main() -> None:
