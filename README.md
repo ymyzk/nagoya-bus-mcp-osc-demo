@@ -1,28 +1,28 @@
-# nagoya-bus-mcp-osc-demo
+# 🚌 名古屋市バスMCPサーバーデモ
 
-A small Streamlit chat app that demos the [`nagoya-bus-mcp`](https://pypi.org/project/nagoya-bus-mcp/) MCP server. Built for an Open Source Conference demo: ask the chat about Nagoya City buses and watch each MCP tool call render inline as the agent works.
+[`nagoya-bus-mcp`](https://pypi.org/project/nagoya-bus-mcp/) MCPサーバーのデモ用 Streamlit チャットアプリです。オープンソースカンファレンス2026 Nagoya でのデモ向けに作成しました。名古屋市バスについて質問すると、エージェントが動作する様子と各 MCP ツール呼び出しがインラインで表示されます。
 
-The app uses the OpenAI Agents SDK against the [OpenRouter](https://openrouter.ai/) API (default model `openai/gpt-5-mini`) and launches `nagoya-bus-mcp` over stdio from the same `uv` environment.
+このアプリは [OpenRouter](https://openrouter.ai/) API（デフォルトモデル: `openai/gpt-5-mini`）に対して OpenAI Agents SDK を使用し、同じ `uv` 環境から stdio 経由で `nagoya-bus-mcp` を起動します。
 
-## Setup
+## セットアップ
 
 ```shell
 uv sync
-cp .env.example .env   # then fill in OPENROUTER_API_KEY
+cp .env.example .env   # OPENROUTER_API_KEY を設定してください
 ```
 
-Override `OPENROUTER_MODEL` in `.env` to try any other model on OpenRouter (e.g. `anthropic/claude-sonnet-4.6`, `google/gemini-2.5-pro`).
+`.env` の `OPENROUTER_MODEL` を変更することで、OpenRouter 上の他のモデルを試せます（例: `anthropic/claude-sonnet-4.6`、`google/gemini-2.5-pro`）。
 
-## Run
+## 実行
 
 ```shell
 uv run streamlit run app.py
 ```
 
-The app opens at <http://localhost:8501>. Try one of the example prompts in the sidebar, or ask your own question — e.g. `名古屋駅のバスの接近情報を教えて`.
+アプリは <http://localhost:8501> で起動します。サイドバーのサンプルプロンプトを試すか、`名古屋駅のバスの接近情報を教えて` のように自由に質問してください。
 
-## How it works
+## 仕組み
 
-- `app.py` opens an `MCPServerStdio` connection to `uv run nagoya-bus-mcp` per chat turn.
-- An `Agent` (OpenAI Agents SDK) is built with `OpenAIChatCompletionsModel` pointed at OpenRouter (`https://openrouter.ai/api/v1`) and streamed via `Runner.run_streamed`.
-- Text deltas stream into the chat bubble; each tool call and result is shown in an inline expander so the audience can see the MCP exchange.
+- `app.py` はチャットのターンごとに `uv run nagoya-bus-mcp` への `MCPServerStdio` 接続を開きます。
+- `Agent`（OpenAI Agents SDK）は OpenRouter（`https://openrouter.ai/api/v1`）を向いた `OpenAIChatCompletionsModel` で構築され、`Runner.run_streamed` でストリーミングされます。
+- テキストのデルタはチャットバブルにストリームされ、各ツール呼び出しと結果はインラインの展開パネルに表示されるため、MCP のやり取りをユーザーが確認できます。
