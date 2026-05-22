@@ -3,17 +3,17 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import dataclass, field
 import json
 import os
-from dataclasses import dataclass, field
 from typing import Any
 
-import streamlit as st
 from agents import Agent, OpenAIChatCompletionsModel, Runner
 from agents.mcp import MCPServerStdio
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from openai.types.responses import ResponseTextDeltaEvent
+import streamlit as st
 
 load_dotenv()
 

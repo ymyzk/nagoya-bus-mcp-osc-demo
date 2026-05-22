@@ -15,3 +15,13 @@ dependencies = [
 dev = [
     "pre-commit>=4.6.0",
 ]
+
+[tool.ruff]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D", "COM812", "FIX002", "PLC2401", "T201", "TD"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
