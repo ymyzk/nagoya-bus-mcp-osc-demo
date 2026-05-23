@@ -4,11 +4,19 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass, field
+from datetime import datetime
 import json
 import os
 from typing import TYPE_CHECKING, Any, Literal, TypedDict
+from zoneinfo import ZoneInfo
 
-from agents import Agent, OpenAIChatCompletionsModel, Runner, TResponseInputItem
+from agents import (
+    Agent,
+    OpenAIChatCompletionsModel,
+    Runner,
+    TResponseInputItem,
+    function_tool,
+)
 from agents.mcp import MCPServerStdio
 from agents.stream_events import RawResponsesStreamEvent, RunItemStreamEvent
 
@@ -24,7 +32,12 @@ load_dotenv()
 AGENT_INSTRUCTIONS = (
     "You are a Nagoya City bus assistant. Help with station lookups, "
     "timetables, route guidance, and real-time approach information. "
-    "Prefer using MCP tools for authoritative answers. Ask clarifying "
+    "Prefer using MCP tools for authoritative answers. "
+    "Use the `get_current_time` tool to get the current date and time in "
+    "JST; rely on it to resolve relative references like 'today', 'now', "
+    "or 'the next bus', and to choose the correct day's timetable. Never "
+    "guess the current time. "
+    "Ask clarifying "
     "questions when a station name or route is ambiguous. The output "
     "should be in Markdown format. "
     "The closest bus stop from the current location is '吹上' (Fukiage). "
@@ -52,6 +65,13 @@ EXAMPLE_PROMPTS = [
     "地下鉄吹上の今日の時刻表を教えて",
     "吹上から栄に行くバスはありますか?",
 ]
+
+
+@function_tool
+def get_current_time() -> str:
+    """Get the current date and time in Japan Standard Time (JST)."""
+    now = datetime.now(ZoneInfo("Asia/Tokyo"))
+    return now.strftime("%Y-%m-%d %H:%M:%S (%A) %Z")
 
 
 @dataclass
@@ -147,6 +167,7 @@ async def run_turn(
             model=model,
             instructions=AGENT_INSTRUCTIONS,
             mcp_servers=[server],
+            tools=[get_current_time],
         )
 
         result = Runner.run_streamed(agent, input=history)
